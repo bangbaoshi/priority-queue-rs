@@ -1,9 +1,18 @@
 [package]
 name = "priority_queue"
 version = "0.1.0"
-authors = ["net_flasher <net_flasher@163.com>"]
+authors = ["opensource <opensource@88.com>"]
 edition = "2018"
-
+keywords = ["collection", "queue", "priority ", "priority queue", "sorted"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+documentation = "https://github.com/bangbaoshi/priority_queue"
+homepage = "https://github.com/bangbaoshi/priority_queue"
+repository = "https://github.com/bangbaoshi/priority_queue"
+
+license = "MIT"
+description = "Priority Queue is more specialized data structure than Queue. Like ordinary queue, priority queue has same method but with a major difference. In Priority queue items are ordered by key value so that item with the lowest value of key is at front and item with the highest value of key is at rear or vice versa. So we're assigned priority to item based on its key value. Lower the value, higher the priority. Following are the principal methods of a Priority Queue."
+readme = "README.md"
 
 [dependencies]

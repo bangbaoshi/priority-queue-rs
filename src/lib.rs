@@ -123,7 +123,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_new() {
+    fn main() {
         let mut queue = PriorityQueue::new();
         for i in 10..100 {
             queue.push(String::from(format!("HelloWorld{}", i)), i);
