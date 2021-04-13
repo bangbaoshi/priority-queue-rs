@@ -42,6 +42,9 @@ impl<T> PriorityQueue<T> where T: Sized {
 
 
     pub fn pop(&mut self) -> Option<T> {
+        if self.nodes.len() < 1 {
+            return None;
+        }
         unsafe {
             let mut res = None;
             let mut node_ptr = (*self.nodes[0]).value;
