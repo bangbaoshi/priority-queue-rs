@@ -3,7 +3,7 @@ name = "priority_queue"
 version = "0.1.0"
 authors = ["opensource <opensource@88.com>"]
 edition = "2018"
-keywords = ["collection", "queue", "priority ", "priority queue", "sorted"]
+keywords = ["collection", "queue", "priority", "priority queue", "sorted"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 
