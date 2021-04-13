@@ -1,19 +1,19 @@
 use core::mem;
 use core::ptr;
 
-struct PriorityQueue<T> where T: Sized {
+pub struct PriorityQueue<T> where T: Sized {
     nodes: Vec<*mut PriorityQueueNode<T>>,
 }
 
 
 impl<T> PriorityQueue<T> where T: Sized {
-    fn new() -> PriorityQueue<T> {
+    pub fn new() -> PriorityQueue<T> {
         PriorityQueue {
             nodes: Vec::with_capacity(128),
         }
     }
 
-    fn push(&mut self, value: T, priority: i32) {
+    pub fn push(&mut self, value: T, priority: i32) {
         let mut node = Box::new(PriorityQueueNode::new(value, priority));
         self.nodes.push(node.as_mut() as *mut PriorityQueueNode<T>);
         mem::forget(node);
@@ -41,7 +41,7 @@ impl<T> PriorityQueue<T> where T: Sized {
     }
 
 
-    fn pop(&mut self) -> Option<T> {
+    pub fn pop(&mut self) -> Option<T> {
         unsafe {
             let mut res = None;
             let mut node_ptr = (*self.nodes[0]).value;
