@@ -8,15 +8,23 @@ Priority Queue is more specialized data structure than Queue. Like ordinary queu
 ```rust
 fn main() {
     let mut queue = PriorityQueue::new();
-    for i in 10..100 {
-        queue.push(String::from(format!("HelloWorld{}", i)), i);
+    for priority in 10..10000 {
+        queue.push(priority, String::from(format!("HelloWorld{}", priority)));
     }
 
-    for i in 0..10 {
+    if let Some(t) = queue.peek() {
+        println!("peek {}", t);
+    }
+
+    for priority in 0..10 {
         let value = queue.pop();
         if let Some(t) = value {
-            println!("{}", t);
+            println!("pop {}", t);
         }
+    }
+
+    if let Some(t) = queue.peek() {
+        println!("peek {}", t);
     }
 }
 ```

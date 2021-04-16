@@ -13,7 +13,7 @@ impl<T> PriorityQueue<T> where T: Sized {
         }
     }
 
-    pub fn push(&mut self, value: T, priority: i32) {
+    pub fn push(&mut self, priority: i32, value: T) {
         let mut node = Box::new(PriorityQueueNode::new(value, priority));
         self.nodes.push(node.as_mut() as *mut PriorityQueueNode<T>);
         mem::forget(node);
@@ -40,6 +40,19 @@ impl<T> PriorityQueue<T> where T: Sized {
         }
     }
 
+    pub fn peek(&mut self) -> Option<&T> {
+        if self.nodes.len() < 1 {
+            return None;
+        }
+        let mut res = None;
+        unsafe {
+            let mut node_ptr = (*self.nodes[0]).value;
+            if let Some(t) = node_ptr {
+                res = Some(& *t);
+            }
+        }
+        return res;
+    }
 
     pub fn pop(&mut self) -> Option<T> {
         if self.nodes.len() < 1 {
@@ -128,15 +141,23 @@ mod test {
     #[test]
     fn main() {
         let mut queue = PriorityQueue::new();
-        for i in 10..100 {
-            queue.push(String::from(format!("HelloWorld{}", i)), i);
+        for priority in 10..10000 {
+            queue.push(priority, String::from(format!("HelloWorld{}", priority)));
         }
 
-        for i in 0..10 {
+        if let Some(t) = queue.peek() {
+            println!("peek {}", t);
+        }
+
+        for priority in 0..10 {
             let value = queue.pop();
             if let Some(t) = value {
-                println!("{}", t);
+                println!("pop {}", t);
             }
+        }
+
+        if let Some(t) = queue.peek() {
+            println!("peek {}", t);
         }
     }
 }
