@@ -40,7 +40,7 @@ impl<T> PriorityQueue<T> where T: Sized {
         }
     }
 
-    pub fn peek(&mut self) -> Option<&T> {
+    pub fn peek(&mut self) -> Option<&mut T> {
         if self.nodes.len() < 1 {
             return None;
         }
@@ -48,7 +48,7 @@ impl<T> PriorityQueue<T> where T: Sized {
         unsafe {
             let mut node_ptr = (*self.nodes[0]).value;
             if let Some(t) = node_ptr {
-                res = Some(& *t);
+                res = Some(&mut *t);
             }
         }
         return res;
