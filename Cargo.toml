@@ -1,6 +1,6 @@
 [package]
 name = "priority-queue-rs"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["opensource <opensource@88.com>"]
 edition = "2018"
 keywords = ["collection", "queue", "priority", "priority-queue", "sorted"]
