@@ -1,138 +1,123 @@
-use core::mem;
-use core::ptr;
+struct PriorityQueueNode<T> where T: Sized {
+    pub priority: u32,
+    pub value: Option<T>,
+}
 
-pub struct PriorityQueue<T> where T: Sized {
-    nodes: Vec<*mut PriorityQueueNode<T>>,
+impl<T> PriorityQueueNode<T> {
+    pub fn new(priority: u32, value: T) -> PriorityQueueNode<T> {
+        PriorityQueueNode {
+            priority,
+            value: Some(value),
+        }
+    }
+}
+
+impl<T> Drop for PriorityQueueNode<T> {
+    fn drop(&mut self) {
+        // println!("value :{} is destory", self.priority);
+    }
 }
 
 
-impl<T> PriorityQueue<T> where T: Sized {
+struct PriorityQueue<T> where T: Sized {
+    pub nodes: Vec<Option<Box<PriorityQueueNode<T>>>>,
+}
+
+impl<T> PriorityQueue<T> {
     pub fn new() -> PriorityQueue<T> {
         PriorityQueue {
             nodes: Vec::with_capacity(128),
         }
     }
 
-    pub fn push(&mut self, priority: i32, value: T) {
-        let mut node = Box::new(PriorityQueueNode::new(value, priority));
-        self.nodes.push(node.as_mut() as *mut PriorityQueueNode<T>);
-        mem::forget(node);
-        if self.nodes.len() < 2 {
-            return;
+    pub fn pop(&mut self) -> Option<T> {
+        if self.nodes.len() < 1 {
+            return None;
         }
-        let mut cur_pos = self.nodes.len() - 1;
-        let mut pos = cur_pos / 2;
+        let top = self.nodes[0].take();
+        let mut max_pos = 0;
+        let mut cur_pos = 0;
+
+        let bottom_node = self.nodes.pop().unwrap();
+        if self.nodes.len() < 1 {
+            return top.unwrap().value.take();
+        }
+
+        self.nodes[max_pos] = bottom_node;
+        let priority = self.nodes[max_pos].as_ref().unwrap().priority;
+        let queue_len = self.nodes.len();
+
         loop {
-            unsafe {
-                if (*self.nodes[pos]).priority < priority {
-                    let temp_ptr = self.nodes[pos];
-                    self.nodes[pos] = self.nodes[cur_pos];
-                    self.nodes[cur_pos] = temp_ptr;
+            let left_child_pos = max_pos * 2 + 1;
+            let right_child_pos = max_pos * 2 + 2;
+
+            if left_child_pos < queue_len && right_child_pos < queue_len {
+                let left_child_priority = self.nodes[left_child_pos].as_ref().unwrap().priority;
+                let right_child_priority = self.nodes[right_child_pos].as_ref().unwrap().priority;
+                if left_child_priority > right_child_priority {
+                    max_pos = left_child_pos;
                 } else {
-                    break;
+                    max_pos = right_child_pos;
+                }
+            } else if left_child_pos < queue_len {
+                let left_child_priority = self.nodes[left_child_pos].as_ref().unwrap().priority;
+                if left_child_priority > priority {
+                    max_pos = left_child_pos;
+                }
+            } else if right_child_pos < queue_len {
+                let right_child_priority = self.nodes[right_child_pos].as_ref().unwrap().priority;
+                if right_child_priority > priority {
+                    max_pos = right_child_pos;
                 }
             }
-            if pos < 1 {
+            if max_pos < 1 || cur_pos == max_pos {
                 break;
             }
-            cur_pos = pos;
-            pos = (pos - 1) / 2;
+            if priority > self.nodes[max_pos].as_ref().unwrap().priority {
+                break;
+            }
+
+            let cur_node = self.nodes[cur_pos].take();
+            let max_node = self.nodes[max_pos].take();
+            self.nodes[max_pos] = cur_node;
+            self.nodes[cur_pos] = max_node;
+            cur_pos = max_pos;
         }
+        return top.unwrap().value.take();
     }
 
     pub fn peek(&mut self) -> Option<&mut T> {
         if self.nodes.len() < 1 {
             return None;
         }
-        let mut res = None;
-        unsafe {
-            let mut node_ptr = (*self.nodes[0]).value;
-            if let Some(t) = node_ptr {
-                res = Some(&mut *t);
-            }
-        }
-        return res;
+        return self.nodes[0].as_mut().unwrap().value.as_mut();
     }
 
-    pub fn pop(&mut self) -> Option<T> {
+    pub fn push(&mut self, priority: u32, value: T) {
         if self.nodes.len() < 1 {
-            return None;
+            self.nodes.push(Some(Box::new(PriorityQueueNode::new(priority, value))));
+            return;
         }
-        unsafe {
-            let mut res = None;
-            let mut node_ptr = (*self.nodes[0]).value;
-            if let Some(t) = node_ptr {
-                Box::from_raw(self.nodes[0]);
-                res = Some(ptr::read(t));
+        let mut compare_pos = (self.nodes.len() - 1) / 2;
+        let new_node = PriorityQueueNode::new(priority, value);
+        self.nodes.push(Some(Box::new(new_node)));
+        let mut new_node_pos = self.nodes.len() - 1;
+        loop {
+            if priority > self.nodes[compare_pos].as_ref().unwrap().priority {
+                let new_node = self.nodes[new_node_pos].take();
+                self.nodes[new_node_pos] = self.nodes[compare_pos].take();
+                self.nodes[compare_pos] = new_node;
+            } else {
+                break;
             }
-
-            if self.nodes.len() == 1 {
-                self.nodes.pop();
-                return res;
+            if compare_pos < 1 {
+                break;
             }
-            let mut cur_pos = 0;
-            let len = self.nodes.len() - 1;
-            self.nodes[cur_pos] = self.nodes[len];
-            loop {
-                unsafe {
-                    let mut left = cur_pos * 2 + 1;
-                    let mut right = cur_pos * 2 + 2;
-
-                    let mut max_pos = cur_pos;
-                    if left < len && right < len {
-                        if (*self.nodes[left]).priority > (*self.nodes[right]).priority {
-                            max_pos = left;
-                        } else {
-                            max_pos = right;
-                        }
-                    } else if left < len && (*self.nodes[left]).priority > (*self.nodes[max_pos]).priority {
-                        max_pos = left;
-                    } else if right < len && (*self.nodes[right]).priority > (*self.nodes[max_pos]).priority {
-                        max_pos = right;
-                    }
-                    if max_pos == cur_pos {
-                        break;
-                    }
-                    if (*self.nodes[cur_pos]).priority > (*self.nodes[max_pos]).priority {
-                        break;
-                    }
-                    let mut ptr = self.nodes[max_pos];
-                    self.nodes[max_pos] = self.nodes[cur_pos];
-                    self.nodes[cur_pos] = ptr;
-                    cur_pos = max_pos;
-                }
-            }
-            self.nodes.pop();
-            return res;
+            new_node_pos = compare_pos;
+            compare_pos = (compare_pos - 1) / 2;
         }
-        return None;
     }
 }
-
-struct PriorityQueueNode<T> where T: Sized {
-    value: Option<*mut T>,
-    priority: i32,
-}
-
-impl<T> PriorityQueueNode<T> {
-    fn new(value: T, priority: i32) -> PriorityQueueNode<T> {
-        let mut realValue = Box::new(value);
-
-        let node = PriorityQueueNode {
-            value: Some(realValue.as_mut() as *mut T),
-            priority,
-        };
-        mem::forget(realValue);
-        return node;
-    }
-}
-
-impl<T> Drop for PriorityQueueNode<T> {
-    fn drop(&mut self) {
-        // println!("drop {}", self.priority);
-    }
-}
-
 
 #[cfg(test)]
 mod test {
